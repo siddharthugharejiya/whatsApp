@@ -2,29 +2,15 @@ import React, { useEffect } from 'react';
 import './App.css';
 import Messanger from './Componets/Messanger';
 import { GoogleOAuthProvider } from '@react-oauth/google';
+import AccountProvider from './Componets/Context/AccountProvider';
 
 function App() {
-  const clientid = "790287253231-bkps2bkp6qkvs55vgi0ba039u3tno4ms.apps.googleusercontent.com";
-
-  useEffect(() => {
-    const handleMessage = (event) => {
-      if (event.origin !== 'https://trusted-origin.com') {
-        console.warn('Received message from untrusted origin:', event.origin);
-        return;
-      }
-    
-    };
-
-    window.addEventListener('message', handleMessage);
-
-    return () => {
-      window.removeEventListener('message', handleMessage);
-    };
-  }, [])
-
+  const clientid = "452198963860-c65auka4jj4uum646ahu2td297c2rv86.apps.googleusercontent.com";
   return (
     <GoogleOAuthProvider clientId={clientid}>
+      <AccountProvider>
       <Messanger />
+      </AccountProvider>
     </GoogleOAuthProvider>
   );
 }
