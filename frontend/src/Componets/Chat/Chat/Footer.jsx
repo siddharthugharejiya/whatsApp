@@ -3,7 +3,8 @@ import React, { useEffect, useState } from 'react';
 import EmojiEmotionsOutlined from '@mui/icons-material/EmojiEmotionsOutlined';
 import AttachFileOutlinedIcon from '@mui/icons-material/AttachFileOutlined';
 import MicOutlinedIcon from '@mui/icons-material/MicOutlined';
-import { uploadFiled } from '../../../Service/api';
+import { uploadFile } from '../../../Service/api';
+
 
 const Container = styled(Box)`
   height: 55px;
@@ -38,17 +39,17 @@ const Clip = styled(AttachFileOutlinedIcon)`
   transform: rotate(40deg);
 `;
 
-function Footer({ text, setText, sendText, file, setfile, conversationId }) {
+function Footer({ text, setText, sendText, file, setfile, conversationId , messages,setmessages}) {
   useEffect(() => {
     const getimage = async () => {
       if (file) {
         console.log("File object:", file);
   
         const data = new FormData();
-        data.append("file", file); // Append the file to the FormData
-        data.append("conversationId", conversationId); // Append conversationId to FormData
+        data.append("file", file); 
+        data.append("conversationId", messages); 
   
-        // Optional: Create a plain object to log FormData for debugging
+ 
         let formDataObj = {};
         data.forEach((value, key) => {
           formDataObj[key] = value instanceof File ? value.name : value;
@@ -56,11 +57,10 @@ function Footer({ text, setText, sendText, file, setfile, conversationId }) {
         console.log("FormData Object:", formDataObj);
   
         try {
-          // Pass the FormData object to the uploadFiled function
-          const response = await uploadFiled(data);  // 'data' is FormData
+        
+          const response = await uploadFile(data);
           console.log("File uploaded successfully, Response:", response);
   
-          // Check the response and handle the imageUrl if available
           if (response && response.imageUrl) {
             console.log("Uploaded file URL:", response.imageUrl);
           }
@@ -80,9 +80,9 @@ function Footer({ text, setText, sendText, file, setfile, conversationId }) {
   };
 
   const Change = (e) => {
-    const newFile = e.target.files[0]; // Get the selected file
-    setfile(newFile);  // Set the file in state
-    setText(newFile.name);  // Set file name as the input text (optional)
+    const newFile = e.target.files[0]; 
+    setfile(newFile);  
+    setText(newFile.name); 
   };
 
   return (

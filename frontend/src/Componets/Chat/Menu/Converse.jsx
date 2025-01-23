@@ -74,7 +74,7 @@ function Converse({ user }) {
           <UserName>{user.name}</UserName>
         </UserDetails>
       </Component>
-      {error && <ErrorText>{error}</ErrorText>} {/* Show error message if any */}
+      {error && <ErrorText>{error}</ErrorText>}
     </>
   );
 }

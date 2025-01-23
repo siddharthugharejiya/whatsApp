@@ -65,18 +65,24 @@ export const GetMessages = async (id) => {
 
   }
 }
-export const uploadFiled = async (formdata) => {
+export const uploadFile = async (selectedFile) => {
+  // Create a new FormData object
+  const formdata = new FormData();
+  formdata.append('file', selectedFile); // 'file' should match the field name expected by your backend
+
   console.log("Form being sent:", formdata);
 
   try {
     const response = await axios.post("http://localhost:9595/file/upload", formdata, {
       headers: {
-        'Content-Type': 'multipart/form-data',
+        'Content-Type': 'multipart/form-data', // Optional; Axios sets it automatically
       },
     });
 
-    console.log("File uploaded successfully:", response.formdata);
+    // Log the response from the server
+    console.log("File uploaded successfully:", response.data);
   } catch (error) {
     console.error("Error uploading file:", error.message);
   }
 };
+

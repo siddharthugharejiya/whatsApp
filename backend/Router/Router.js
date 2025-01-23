@@ -1,18 +1,13 @@
 const { Router } = require('express');
+const multer = require('multer');
+const grid = require('gridfs-stream');
+const mongoose = require('mongoose');
+const { GridFsStorage } = require('multer-gridfs-storage');
 const UserModel = require('../Model/UserModel');
 const ConversationModel = require('../Model/Conversation');
 const MessageModel = require('../Model/Message');
-const upload = require('../utils/upload')
-const { GridFsStorage } = require('multer-gridfs-storage');
-const EventEmitter = require('events');
-const grid = require('gridfs-stream');
-const {  mongoose } = require('mongoose');
-
-class FileEmitter extends EventEmitter {}
-
 
 const UserRouter = Router();
-
 
 UserRouter.post("/add", async (req, res) => {
     try {
@@ -35,7 +30,6 @@ UserRouter.get("/users", async (req, res) => {
         return res.status(500).json({ error: error.message });
     }
 });
-
 
 UserRouter.post("/conversation/add", async (req, res) => {
     try {
@@ -62,7 +56,6 @@ UserRouter.post("/conversation/get", async (req, res) => {
     }
 });
 
-
 UserRouter.post("/message/add", async (req, res) => {
     try {
         const { conversationId, text, senderId, receiverId } = req.body;
@@ -87,36 +80,35 @@ UserRouter.get('/message/get/:id', async (req, res) => {
     }
 });
 
-UserRouter.post('/file/upload', upload.single("file"), async (req, res) => {
-    try {
-        if (!req.file) {
-            return res.status(404).json("File Not Found");
+const storage = new GridFsStorage({
+    url: "mongodb+srv://multiera95:95@cluster0.8i0uu.mongodb.net/?retryWrites=true&w=majority",
+    file: (req, file) => {
+        const match = ["image/jpeg", "image/png"];
+        if (match.indexOf(file.mimetype) === -1) {
+            return Promise.reject(new Error("Invalid file type"));
         }
-        const f = req.file; 
-        console.log(f);
-
-        const fileInfo = {
-            id: f.id || f._id, 
-            filename: f.filename,
-            bucketName: f.bucketName,
-            contentType: f.contentType,
+        return {
+            bucketName: 'fs',
+            filename: `${Date.now()}-${file.originalname}`,
         };
-
-        console.log("Uploaded File Info:", fileInfo);
-
-        return res.status(200).json({
-            imageUrl: `http://localhost:9595/file/upload/${f.filename}`,
-        });
-    } catch (error) {
-        console.error("Error uploading file:", error);
-        return res.status(500).json({ error: error.message });
     }
 });
 
+const upload = multer({ storage }).single('file');
 
+UserRouter.post('/file/upload', (req, res) => {
+    upload(req, res, (err) => {
+        if (err) {
+            return res.status(400).json({ error: err.message });
+        }
+        if (!req.file) {
+            return res.status(400).json({ error: 'No file uploaded' });
+        }
+        return res.status(200).json({ message: 'File uploaded successfully', fileId: req.file.id });
+    });
+});
 
 let gfs, gridFsBucket;
-
 
 const conn = mongoose.connection;
 conn.once('open', () => {
@@ -131,14 +123,12 @@ UserRouter.get('/file/:filename', async (req, res) => {
     try {
         const { filename } = req.params;
         const file = await gfs.files.findOne({ filename });
-
         if (!file) {
             return res.status(404).json({ message: 'File not found' });
         }
-
         if (file.contentType === 'image/jpeg' || file.contentType === 'image/png') {
             const readStream = gridFsBucket.openDownloadStream(file._id);
-            readStream.pipe(res); 
+            readStream.pipe(res);
         } else {
             res.status(400).json({ message: 'File is not an image' });
         }

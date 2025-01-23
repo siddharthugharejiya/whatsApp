@@ -65,7 +65,7 @@ function Messangers({ person, conversation }) {
             <Message key={index} messages={msg} />
           ))}
       </Componets>
-      <Footer text={text} setText={setText} sendText={sendText} setfile={setfile} file={file}  conversationId={conversation._id}/>
+      <Footer text={text} setText={setText} sendText={sendText} setfile={setfile} file={file}  conversationId={conversation._id} messages={messages} setmessages={setmessages}/>
     </Wrapper>
   );
 }
