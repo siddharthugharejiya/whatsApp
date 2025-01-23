@@ -8,13 +8,12 @@ const EventEmitter = require('events');
 const grid = require('gridfs-stream');
 const {  mongoose } = require('mongoose');
 
-// EventEmitter for file upload events
 class FileEmitter extends EventEmitter {}
-const fileEmitter = new FileEmitter();
+
 
 const UserRouter = Router();
 
-// Add new user
+
 UserRouter.post("/add", async (req, res) => {
     try {
         const data = await UserModel.findOne({ sub: req.body.sub });
@@ -28,7 +27,6 @@ UserRouter.post("/add", async (req, res) => {
     }
 });
 
-// Get all users
 UserRouter.get("/users", async (req, res) => {
     try {
         const data = await UserModel.find();
@@ -38,7 +36,7 @@ UserRouter.get("/users", async (req, res) => {
     }
 });
 
-// Add conversation
+
 UserRouter.post("/conversation/add", async (req, res) => {
     try {
         const { senderId, receiverId } = req.body;
@@ -54,7 +52,6 @@ UserRouter.post("/conversation/add", async (req, res) => {
     }
 });
 
-// Get conversation by sender and receiver
 UserRouter.post("/conversation/get", async (req, res) => {
     try {
         const { senderId, receiverId } = req.body;
@@ -65,7 +62,7 @@ UserRouter.post("/conversation/get", async (req, res) => {
     }
 });
 
-// Add message to conversation
+
 UserRouter.post("/message/add", async (req, res) => {
     try {
         const { conversationId, text, senderId, receiverId } = req.body;
@@ -81,7 +78,6 @@ UserRouter.post("/message/add", async (req, res) => {
     }
 });
 
-// Get messages by conversationId
 UserRouter.get('/message/get/:id', async (req, res) => {
     try {
         const message = await MessageModel.find({ conversationId: req.params.id });
@@ -108,7 +104,6 @@ UserRouter.post('/file/upload', upload.single("file"), async (req, res) => {
 
         console.log("Uploaded File Info:", fileInfo);
 
-        // Respond with the file URL
         return res.status(200).json({
             imageUrl: `http://localhost:9595/file/upload/${f.filename}`,
         });
@@ -122,7 +117,7 @@ UserRouter.post('/file/upload', upload.single("file"), async (req, res) => {
 
 let gfs, gridFsBucket;
 
-// Setup GridFS storage connection
+
 const conn = mongoose.connection;
 conn.once('open', () => {
     gridFsBucket = new mongoose.mongo.GridFSBucket(conn.db, {
@@ -132,7 +127,6 @@ conn.once('open', () => {
     gfs.collection('fs');
 });
 
-// Get file by filename (stream file to client)
 UserRouter.get('/file/:filename', async (req, res) => {
     try {
         const { filename } = req.params;
@@ -144,7 +138,7 @@ UserRouter.get('/file/:filename', async (req, res) => {
 
         if (file.contentType === 'image/jpeg' || file.contentType === 'image/png') {
             const readStream = gridFsBucket.openDownloadStream(file._id);
-            readStream.pipe(res); // Stream the file to the response
+            readStream.pipe(res); 
         } else {
             res.status(400).json({ message: 'File is not an image' });
         }
