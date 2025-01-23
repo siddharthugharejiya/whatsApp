@@ -47,15 +47,17 @@ function Message({ messages }) {
   return (
     <>
       {account.sub === messages.senderId ? (
-        <Own>
-          <Text>{messages.text}</Text>
-          <Time>{Formate_date(messages.createdAt)}</Time>
-        </Own>
-      ) : (
-        <Wrapper>
+          <Wrapper>
           <Text>{messages.text}</Text>
           <Time>{Formate_date(messages.createdAt)}</Time>
         </Wrapper>
+      ) : (
+      
+
+<Own>
+<Text>{messages.text}</Text>
+<Time>{Formate_date(messages.createdAt)}</Time>
+</Own>
       )}
     </>
   );

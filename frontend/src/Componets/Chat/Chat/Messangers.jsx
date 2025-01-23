@@ -17,10 +17,12 @@ const Componets = styled(Box)`
 
 function Messangers({ person, conversation }) {
   console.log(conversation);
+  console.log(`this is coverstion id = ${conversation._id}`);
 
   const [newMsgLoading, setnewMsgLoading] = useState(false);
   const [text, setText] = useState('');
   const { account } = useContext(AccountContext);
+  const [file,setfile]=useState()
   const [messages, setmessages] = useState([]);
 
   useEffect(() => {
@@ -63,7 +65,7 @@ function Messangers({ person, conversation }) {
             <Message key={index} messages={msg} />
           ))}
       </Componets>
-      <Footer text={text} setText={setText} sendText={sendText} />
+      <Footer text={text} setText={setText} sendText={sendText} setfile={setfile} file={file}  conversationId={conversation._id}/>
     </Wrapper>
   );
 }
