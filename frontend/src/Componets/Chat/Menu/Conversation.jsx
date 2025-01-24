@@ -6,7 +6,7 @@ import { AccountContext } from '../../Context/AccountProvider';
 
 function Conversation({ text }) {
   const [users, setUsers] = useState([]);
-  const { account } = useContext(AccountContext);
+  const { account , socket, activeusers, setactiveusers } = useContext(AccountContext);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -23,6 +23,14 @@ function Conversation({ text }) {
     fetchData();
   }, [text]);
 
+  useEffect(() => {
+    socket.current.emit('addUsers', account);
+    socket.current.on('getUsers', Users => {
+      setactiveusers(Users);
+    })
+    
+  }, [ account])
+
   const Components = styled(Box)`
     height: 81vh;
     overflow: overlay;
@@ -38,9 +46,9 @@ function Conversation({ text }) {
     <Components>
       {users.map((user) => (
         user.sub !== account.sub && (
-          <React.Fragment key={user.id}>
+          <React.Fragment key={user.sub}>
             <Converse user={user} />
-            <DividerStyle />
+            <DividerStyle key={user.sub} />
           </React.Fragment>
         )
       ))}

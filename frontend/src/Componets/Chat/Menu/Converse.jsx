@@ -1,7 +1,8 @@
 import { Box, styled, Typography } from '@mui/material';
-import React, { useContext, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { AccountContext } from '../../Context/AccountProvider';
-import { setConverstion } from '../../../Service/api';
+import { getConverstion, setConverstion } from '../../../Service/api';
+import { Formate_date } from '../../../utils/Common-Utils';
 
 // Styled components
 const Component = styled(Box)`
@@ -24,16 +25,14 @@ const Image = styled('img')({
   objectFit: 'cover',
 });
 
-const UserDetails = styled(Box)`
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-`;
-
-const UserName = styled(Typography)`
-  font-size: 16px;
-  font-weight: 500;
-  color: #333;
+const LastMessage = styled(Typography)`
+  font-size: 14px;
+  color: #999;
+  margin-top: 5px;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 `;
 
 const ErrorText = styled(Typography)`
@@ -42,37 +41,63 @@ const ErrorText = styled(Typography)`
   margin-top: 10px;
 `;
 
-// Converse component
 function Converse({ user }) {
   const { setperson, account } = useContext(AccountContext);
-  const [error, setError] = useState(null); // State to manage errors
+  const [error, setError] = useState(null);
+  const [message, setMessage] = useState({ text: '', timestamp: null });
 
-  const getusers = async () => {
-    if (!user || !account) {
-      setError('User or account information is missing.');
-      return;
-    }
+  useEffect(() => {
+    const fetchMessage = async () => {
+      try {
+        // Fetch conversation data
+        const data = await getConverstion({ senderId: account.sub, receiverId: user.sub });
 
+        // Handle the response data
+        if (data && data.message) {
+          setMessage({
+            text: data.message,
+            timestamp: data.updatedAt,
+          });
+        } else {
+          setMessage({ text: 'No message available', timestamp: null });
+        }
+      } catch (err) {
+        setError('Failed to fetch conversation: ' + err.message);
+      }
+    };
+
+    fetchMessage();
+  }, [user, account]);
+
+  const handleUserClick = async () => {
     try {
-      setperson(user); // Set the selected person in context
-      await setConverstion({
-        senderId: account.sub,
-        receiverId: user.sub,
-      });
-      setError(null); // Clear any previous errors
-    } catch (error) {
-      setError("Error setting conversation: " + error.message);
-      console.error("Error setting conversation:", error);
+      // Set selected user in context
+      setperson(user);
+
+      // Create or fetch a conversation
+      await setConverstion({ senderId: account.sub, receiverId: user.sub });
+
+      setError(null); // Clear errors
+    } catch (err) {
+      setError('Failed to set conversation: ' + err.message);
     }
   };
 
   return (
     <>
-      <Component onClick={getusers}>
-        <Image src={user.picture || 'default-image.jpg'} alt={user.name} />
-        <UserDetails>
-          <UserName>{user.name}</UserName>
-        </UserDetails>
+      <Component onClick={handleUserClick}>
+        <Box>
+          <Image src={user.picture || 'https://via.placeholder.com/50'} alt={user.name} />
+        </Box>
+        <Box>
+          <Typography>{user.name}</Typography>
+          <LastMessage>{message.text}</LastMessage>
+          {message.timestamp && (
+            <Typography variant="caption" color="textSecondary">
+              {Formate_date(message.timestamp)}
+            </Typography>
+          )}
+        </Box>
       </Component>
       {error && <ErrorText>{error}</ErrorText>}
     </>

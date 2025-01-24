@@ -18,7 +18,7 @@ function ChatBox() {
       setconversation(data)
     }
     getConversationDetails()
-  },[person.sub])
+  },[person.sub,account.sub])
   console.log(conversation);
   return (
    <>

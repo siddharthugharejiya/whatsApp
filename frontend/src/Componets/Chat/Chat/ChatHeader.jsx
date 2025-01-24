@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { Box, styled, Typography } from '@mui/material';
 import { Search, MoreVert } from "@mui/icons-material";
+import { AccountContext } from '../../Context/AccountProvider';
 
 const Header = styled(Box)`
   height: 55px;
@@ -30,19 +31,30 @@ const IconContainer = styled(Box)`
 `;
 
 function ChatHeader({ person }) {
-  const [currentPerson, setCurrentPerson] = useState(person);
 
-  useEffect(() => {
-    setCurrentPerson(person);  // Update state if `person` changes
-  }, [person]);
+  const { activeusers } = useContext(AccountContext);
+
+  
+
+
 
   return (
     <Header>
       <Box display="flex" alignItems="center">
-        <Image src={currentPerson.picture || 'https://www.gravatar.com/avatar/?d=mp'} alt="dp" />
+        <Image 
+          src={person?.picture || 'https://www.gravatar.com/avatar/?d=mp'} 
+          alt="dp" 
+        />
         <NameStatusBox>
-          <Typography variant="subtitle1">{currentPerson.name}</Typography>
-          <Typography variant="body2" color="textSecondary">online status</Typography>
+          <Typography variant="subtitle1">{person.name}</Typography>
+          <Typography 
+            variant="body2" 
+            color="textSecondary"
+          >
+            {activeusers?.find(user => user.sub === person.sub) ? 'Online' : 'Offline'}
+          
+            
+          </Typography>
         </NameStatusBox>
       </Box>
       <IconContainer>

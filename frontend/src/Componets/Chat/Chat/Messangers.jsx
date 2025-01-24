@@ -1,5 +1,5 @@
 import { Box, styled } from '@mui/material';
-import React, { useState, useContext, useEffect } from 'react';
+import React, { useState, useContext, useEffect, useRef } from 'react';
 import Footer from './Footer';
 import { AccountContext } from '../../Context/AccountProvider';
 import { GetMessages, NewMessage } from '../../../Service/api';
@@ -15,15 +15,34 @@ const Componets = styled(Box)`
   overflow-y: scroll;
 `;
 
-function Messangers({ person, conversation }) {
+function Messangers({ person, conversation }) 
+{
   console.log(conversation);
   console.log(`this is coverstion id = ${conversation._id}`);
 
   const [newMsgLoading, setnewMsgLoading] = useState(false);
   const [text, setText] = useState('');
-  const { account } = useContext(AccountContext);
-  const [file,setfile]=useState()
+  const { account, socket ,setNewOne,NewOne } = useContext(AccountContext);
+  const [file, setfile] = useState();
   const [messages, setmessages] = useState([]);
+  const [incomingMessages, setincomingMessages] = useState(null);
+
+  const ScrollRef = useRef();
+
+  
+
+  useEffect(() => {
+    ScrollRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  useEffect(() => {
+    socket.current.on('getMessage', (data) => {
+      setincomingMessages({
+        ...data,
+        createdAt: Date.now(),
+      });
+    });
+  }, []);
 
   useEffect(() => {
     const getMessagesDetails = async () => {
@@ -35,6 +54,11 @@ function Messangers({ person, conversation }) {
     };
     getMessagesDetails();
   }, [person._id, conversation._id, newMsgLoading]);
+
+  useEffect(() => {
+    incomingMessages && conversation?.members?.includes(incomingMessages.senderId) &&
+      setmessages((prev) => [...prev, incomingMessages]);
+  }, [incomingMessages, NewOne]);
 
   const sendText = async (text) => {
     if (text.trim() === '') return;
@@ -51,7 +75,7 @@ function Messangers({ person, conversation }) {
       text: text,
     };
 
-    console.log('Message sent:', message);
+    socket.current.emit('sendMessage', message);
     await NewMessage(message);
     setText('');
     setnewMsgLoading((pre) => !pre);
@@ -64,8 +88,18 @@ function Messangers({ person, conversation }) {
           messages.map((msg, index) => (
             <Message key={index} messages={msg} />
           ))}
+        <div ref={ScrollRef} />
       </Componets>
-      <Footer text={text} setText={setText} sendText={sendText} setfile={setfile} file={file}  conversationId={conversation._id} messages={messages} setmessages={setmessages}/>
+      <Footer
+        text={text}
+        setText={setText}
+        sendText={sendText}
+        setfile={setfile}
+        file={file}
+        conversationId={conversation._id}
+        messages={messages}
+        setmessages={setmessages}
+      />
     </Wrapper>
   );
 }
